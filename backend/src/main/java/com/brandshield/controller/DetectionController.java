@@ -90,6 +90,7 @@ public class DetectionController {
     }
 
     @GetMapping(value = {"/{id}/explanation", "/{id}/ai-explanation"})
+    @Transactional(readOnly = true)
     public ResponseEntity<AiExplanationResponse> getExplanation(@PathVariable Long id) {
         ThreatDetection detection = detectionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Detection", id));

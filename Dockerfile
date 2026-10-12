@@ -58,13 +58,12 @@ USER brandshield
 EXPOSE 8080
 
 # Environment configurations with safe defaults
-ENV SPRING_PROFILES_ACTIVE=dev \
-    DEMO_MODE=true \
+ENV DEMO_MODE=true \
     SERVER_PORT=8080 \
-    JAVA_OPTS="-Xms256m -Xmx512m -Djava.security.egd=file:/dev/./urandom"
+    JAVA_OPTS="-Xms128m -Xmx384m -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Djava.security.egd=file:/dev/./urandom"
 
-# Healthcheck to verify Spring Boot endpoint readiness
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+# Healthcheck to verify Spring Boot endpoint readiness (extended start-period for cloud cold starts)
+HEALTHCHECK --interval=30s --timeout=5s --start-period=150s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/brands || exit 1
 
-ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["sh", "-c", "PROFILE=${SPRING_PROFILES_ACTIVE:-$(if [ -n \"$DB_PASS\" ] || [ -n \"$DB_URL\" ]; then echo default; else echo dev; fi)}; exec java $JAVA_OPTS -Dspring.profiles.active=$PROFILE -jar app.jar"]

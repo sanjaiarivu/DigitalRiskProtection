@@ -15,7 +15,16 @@ public class RootController {
 
     private final Resource indexResource = new ClassPathResource("static/index.html");
 
-    @GetMapping("/")
+    @GetMapping({
+        "/",
+        "/brands",
+        "/brands/{id}",
+        "/social",
+        "/apps",
+        "/investigations",
+        "/investigations/{id}",
+        "/settings"
+    })
     public String index() {
         if (indexResource.exists()) {
             return "forward:/index.html";
