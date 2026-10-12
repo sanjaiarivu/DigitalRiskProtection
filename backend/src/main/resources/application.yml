@@ -7,8 +7,8 @@ spring:
     name: brandshield-api
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:brandshield}?sslMode=REQUIRED
-    username: ${DB_USER:root}
+    url: mysql://CLICK_TO:REVEAL_PASSWORD@root-sanjaiarivazhagan03.k.aivencloud.com:26007/defaultdb?ssl-mode=REQUIRED
+    username: ${DB_USER:}
     password: ${DB_PASS:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
