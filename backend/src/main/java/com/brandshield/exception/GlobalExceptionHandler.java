@@ -77,6 +77,15 @@ public class GlobalExceptionHandler {
                 .build());
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(ApiErrorResponse.builder()
+                .status(404)
+                .message("Static resource not found: " + ex.getResourcePath())
+                .build());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneral(Exception ex) {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
