@@ -1,0 +1,23 @@
+# Git & IDE metadata
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+
+# Node / Frontend artifacts
+frontend/node_modules
+frontend/dist
+frontend/.vite
+frontend/.env.local
+
+# Java / Maven artifacts
+backend/target
+backend/.tools
+backend/.mvn
+backend/*.log
+
+# Logs & temp files
+*.log
+.DS_Store
+Thumbs.db

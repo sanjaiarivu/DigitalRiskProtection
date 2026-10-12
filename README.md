@@ -153,10 +153,37 @@ java "-Dspring.profiles.active=dev" -jar target\brandshield-api-1.0.0.jar
 ```powershell
 cd "s:\My Projects\DigitalRiskProtection\frontend"
 
-# Build production bundle (or start development server)
+# Launch development server
 cmd.exe /c "npm run dev"
 ```
 *Frontend runs at:* `http://localhost:5173`
+
+---
+
+## 🐳 Running with Docker
+
+### 1. Build and Run the Unified Full-Stack Container (Recommended)
+
+Builds both frontend and backend into a single Alpine container serving both UI and API:
+
+```powershell
+# Build image
+docker build -t brandshield-ai .
+
+# Run with Gemini API key
+docker run -d -p 8080:8080 -e GEMINI_API_KEY="your_api_key_here" --name brandshield brandshield-ai
+```
+*Visit application:* `http://localhost:8080` (Frontend UI + REST APIs + Swagger)
+
+### 2. Run with Docker Compose (with Persistent MySQL)
+
+```powershell
+# Set your Gemini key
+$env:GEMINI_API_KEY="your_api_key_here"
+
+# Start the full stack
+docker compose up -d
+```
 
 ---
 
