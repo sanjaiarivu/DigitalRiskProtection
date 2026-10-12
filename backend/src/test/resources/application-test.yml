@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:brandshield_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MYSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+app:
+  demo-mode: true
+  cors:
+    allowed-origins: http://localhost:5173
+  ai:
+    gemini:
+      api-key:
+      model: gemini-1.5-flash
+      base-url: https://generativelanguage.googleapis.com/v1beta
+    openai:
+      api-key:
+      model: gpt-4o-mini
+      base-url: https://api.openai.com/v1
+      timeout-seconds: 5
