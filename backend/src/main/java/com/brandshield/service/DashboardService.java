@@ -37,7 +37,7 @@ public class DashboardService {
         long totalSocial = socialCandidateRepository.count();
         long totalApps = appCandidateRepository.count();
         long totalCandidates = totalSocial + totalApps;
-        long totalDetections = detectionRepository.count();
+        long totalDetections = detectionRepository.countThreatDetections();
         long newDetections = detectionRepository.countByStatus(ThreatDetection.DetectionStatus.NEW);
         long highRisk = detectionRepository.countByRiskLevel(ThreatDetection.RiskLevel.HIGH);
         long critical = detectionRepository.countByRiskLevel(ThreatDetection.RiskLevel.CRITICAL);
@@ -54,8 +54,7 @@ public class DashboardService {
         detectionsByType.put("APP", detectionRepository.countByCandidateType(ThreatDetection.CandidateType.APP));
 
         // Recent detections
-        List<ThreatDetectionResponse> recentDetections = detectionRepository.findTop10ByOrderByDetectedAtDesc()
-                .stream()
+        List<ThreatDetectionResponse> recentDetections = detectionRepository.findRecentThreats().stream().limit(10)
                 .map(EntityMapper::toThreatDetectionResponse)
                 .collect(Collectors.toList());
 

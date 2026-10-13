@@ -32,7 +32,7 @@ public class GeminiExplanationService implements AiExplanationService {
     @Value("${app.ai.gemini.api-key:}")
     private String apiKey;
 
-    @Value("${app.ai.gemini.model:gemini-1.5-flash}")
+    @Value("${app.ai.gemini.model:gemini-3.8-flash}")
     private String model;
 
     @Value("${app.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")

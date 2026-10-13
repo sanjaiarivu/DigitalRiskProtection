@@ -3,6 +3,7 @@ package com.brandshield.service;
 import com.brandshield.detection.*;
 import com.brandshield.dto.response.AppCandidateResponse;
 import com.brandshield.dto.response.ScanResultResponse;
+import com.brandshield.dto.request.AppCandidateCreateRequest;
 import com.brandshield.entity.*;
 import com.brandshield.mapper.EntityMapper;
 import com.brandshield.repository.*;
@@ -52,6 +53,27 @@ public class AppMonitoringService {
     }
 
     @Transactional
+    public AppCandidateResponse addCandidate(AppCandidateCreateRequest request) {
+        AppCandidate candidate = AppCandidate.builder()
+                .appName(request.appName().trim())
+                .packageId(request.packageId())
+                .bundleId(request.bundleId())
+                .publisherName(request.publisherName())
+                .publisherId(request.publisherId())
+                .storePlatform(request.storePlatform())
+                .storeUrl(request.storeUrl())
+                .description(request.description())
+                .iconUrl(request.iconUrl())
+                .externalLinks(request.externalLinks())
+                .downloadCount(request.downloadCount())
+                .rating(request.rating())
+                .isSynthetic(false)
+                .source("MANUAL_IMPORT")
+                .build();
+        return EntityMapper.toAppCandidateResponse(appCandidateRepository.save(candidate));
+    }
+
+    @Transactional
     public ScanResultResponse scanAllBrands() {
         List<Brand> brands = brandRepository.findAll();
         List<AppCandidate> candidates = appCandidateRepository.findAll();
@@ -64,25 +86,25 @@ public class AppMonitoringService {
             List<BrandAsset> officialAssets = brandAssetRepository.findByBrandId(brand.getId());
 
             for (AppCandidate candidate : candidates) {
+                OfficialAssetVerifier.VerificationResult verification =
+                    assetVerifier.verifyAppCandidate(candidate, officialAssets);
+                if (verification.isOfficial()) {
+                    officialExcluded++;
+                    continue;
+                }
+
                 List<ThreatDetection> existing = detectionRepository
                     .findByAppCandidateAndBrand(candidate.getId(), brand.getId());
                 if (!existing.isEmpty()) continue;
 
-                OfficialAssetVerifier.VerificationResult verification =
-                    assetVerifier.verifyAppCandidate(candidate, officialAssets);
-
                 List<DetectionSignal> signals = appAnalyzer.analyze(candidate, brand, officialAssets);
 
-                if (signals.isEmpty() && !verification.isOfficial()) continue;
+                if (signals.isEmpty()) continue;
 
                 RiskScorer.RiskAssessment assessment =
                     riskScorer.calculateRiskScore(signals, verification.isOfficial());
 
-                if (verification.isOfficial()) {
-                    officialExcluded++;
-                }
-
-                if (!signals.isEmpty() || verification.isOfficial()) {
+                if (!signals.isEmpty()) {
                     ThreatDetection detection = createDetection(
                         brand, candidate, signals, assessment, verification);
                     detectionRepository.save(detection);

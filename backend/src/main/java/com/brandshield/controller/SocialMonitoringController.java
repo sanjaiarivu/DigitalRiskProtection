@@ -2,6 +2,9 @@ package com.brandshield.controller;
 
 import com.brandshield.dto.response.ScanResultResponse;
 import com.brandshield.dto.response.SocialCandidateResponse;
+import com.brandshield.dto.request.SocialCandidateCreateRequest;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import com.brandshield.service.SocialMonitoringService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,11 @@ public class SocialMonitoringController {
     @GetMapping("/candidates")
     public ResponseEntity<List<SocialCandidateResponse>> getCandidates() {
         return ResponseEntity.ok(socialMonitoringService.getCandidates());
+    }
+
+    @PostMapping("/candidates")
+    public ResponseEntity<SocialCandidateResponse> addCandidate(@Valid @RequestBody SocialCandidateCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(socialMonitoringService.addCandidate(request));
     }
 
     @PostMapping("/scan")

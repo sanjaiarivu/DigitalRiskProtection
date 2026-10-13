@@ -18,7 +18,7 @@ services:
       - DEMO_MODE=${DEMO_MODE:-true}
       # Google Gemini API key (passed from host .env or shell)
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
-      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-1.5-flash}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-3.8-flash}
       # Optional OpenAI key
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       # MySQL connection (used when SPRING_PROFILES_ACTIVE=prod)

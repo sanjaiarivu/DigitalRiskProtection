@@ -4,6 +4,7 @@ import { dashboardApi } from '../api/dashboard';
 import { demoApi } from '../api/demo';
 import PageHeader from '../components/layout/PageHeader';
 import StatCard from '../components/shared/StatCard';
+import ThreatPulseCard from '../components/shared/ThreatPulseCard';
 import RiskBadge from '../components/shared/RiskBadge';
 import StatusBadge from '../components/shared/StatusBadge';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
@@ -122,6 +123,8 @@ export default function OverviewPage() {
           color="rose"
         />
       </div>
+
+      <ThreatPulseCard data={data} />
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

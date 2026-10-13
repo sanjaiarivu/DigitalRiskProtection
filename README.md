@@ -1,7 +1,7 @@
 # BrandShield AI — Digital Risk Protection Platform
 ## Hackathon Edition • Full-Stack Cybersecurity Solution
 
-**BrandShield AI** is an AI-powered, explainable digital risk protection system designed to detect, investigate, and remediate brand impersonation, look-alike domains/profiles, rogue mobile apps, and phishing campaigns across external attack surfaces.
+**BrandShield AI** is an explainable prototype for reviewing potential brand impersonation in imported social profiles and mobile app listings. It stores brand assets, scores candidate records, and supports analyst investigations. Social-platform and app-store discovery connectors are not included; candidates are added manually or loaded as synthetic demo data.
 
 ---
 
@@ -55,6 +55,11 @@ graph TD
     Repo --> DB
 ```
 
+## Analyst-facing additions
+
+- **Exposure Pulse** summarizes current critical and unreviewed cases plus social/app detection counts. Its restrained 3D tilt is based on the 21st.dev 3D tilt-card pattern and disables motion when the system requests reduced motion.
+- **Evidence Pack Export** downloads a case as JSON with its signals, notes, status history, candidate metadata, and AI explanation for analyst handoff.
+
 ---
 
 ## 🔬 Core Detection Algorithms & Methodology
@@ -72,7 +77,7 @@ graph TD
 
 ### 2. Official Asset Whitelisting & Exclusion (`OfficialAssetVerifier`)
 - **Security Rule**: Official brand assets are strictly verified via **exact immutable platform identifiers** (e.g., account ID, package bundle ID, canonical URL), **never by display name similarity**.
-- **Zero-Risk Guarantee**: Verified official assets are automatically assigned a risk score of `0` and status `LEGITIMATE`, completely eliminating false-positive alerts on legitimate brand channels.
+- **Exclusion**: Verified official assets are omitted from threat detections and counted in the scan result. Matching uses stable account/package identifiers or an exact canonical social URL.
 
 ### 3. Mobile App Vector Analysis (`AppCandidateAnalyzer`)
 - **Package ID Proximity**: Flags applications whose package names mimic official ones without matching exactly (e.g. `com.techvauit.app` vs `com.techvault.app`).
@@ -91,7 +96,7 @@ Rather than a black-box probability, BrandShield AI calculates an **investigativ
 | **PUBLISHER_MISMATCH** | `1.3x` | Rogue developers releasing apps under brand trademarks in official stores. |
 | **CHARACTER_SUBSTITUTION** | `1.2x` | Look-alike characters (`1` for `l`) signal malicious intent rather than coincidence. |
 | **SUSPICIOUS_LINK** | `1.1x` | Profile bios containing URL shorteners or credential-harvesting patterns. |
-| **IMAGE_SIMILARITY** | `1.1x` | Logo visual mimicry indicator. |
+| **IMAGE_SIMILARITY** | `1.1x` | Reserved scoring category; visual image comparison is not implemented in this prototype. |
 | **NAME_SIMILARITY** | `1.0x` | Baseline edit-distance match against protected brand names and registered aliases. |
 | **AFFIX_PATTERN** | `1.0x` | Impersonation affixes (`_support`, `_official`). |
 | **DESCRIPTION_SIMILARITY**| `0.8x` | Keyword overlaps in bio descriptions. |
@@ -108,7 +113,7 @@ Rather than a black-box probability, BrandShield AI calculates an **investigativ
 ## 🤖 Responsible AI Threat Intelligence
 
 BrandShield AI features a multi-tiered **`AiExplanationOrchestrator`**:
-1. **Google Gemini AI (Recommended • `gemini-1.5-flash`)**:
+1. **Google Gemini AI (Recommended • `gemini-3.8-flash`)**:
    - Native integration with Google Generative Language API.
    - Outputs structured threat intelligence schemas via `responseMimeType="application/json"`.
    - Activated automatically by setting the `GEMINI_API_KEY` environment variable.
@@ -127,6 +132,8 @@ BrandShield AI features a multi-tiered **`AiExplanationOrchestrator`**:
 - **Node.js 18+** with `npm`
 
 ### 1. Configure Your Gemini API Key (Optional but Recommended)
+
+The backend reads `GEMINI_API_KEY` from the project `.env` file automatically. Keep that file private; do not commit or paste the key into source files. The application tries Gemini first when generating an investigation explanation.
 
 In your PowerShell window before starting:
 ```powershell
@@ -189,13 +196,15 @@ docker compose up -d
 
 ## 🎬 Live Hackathon Demo Walkthrough Script
 
+> This is a seeded-data demonstration. The scan processes candidate records already stored in the application; it does not query social networks or app stores.
+
 | Step | Action | Endpoint / UI View | Expected Result |
 | :---: | :--- | :--- | :--- |
 | **1** | **Initialize Demo Data** | `POST /api/v1/demo/seed` (or click "Load Demo Data" on Overview) | Creates brand `TechVault` with 2 official assets (Twitter & Google Play), 4 social profiles, 3 app candidates. |
-| **2** | **Verify Whitelist** | Navigate to **Brand Profiles** $\rightarrow$ `TechVault` | Shows official Twitter handle (`@techvault`) and package ID (`com.techvault.app`) registered as verified whitelist assets. |
+| **2** | **Verify Whitelist** | Navigate to **Brand Profiles** $\rightarrow$ `TechVault` | Shows the official account ID and package ID registered as verified whitelist assets. |
 | **3** | **Run Social Scan** | Navigate to **Social Monitoring** $\rightarrow$ Click **"Run Social Scan"** | Analyzes all social candidates against brand and aliases. |
 | **4** | **Run App Scan** | Navigate to **App Monitoring** $\rightarrow$ Click **"Run App Scan"** | Evaluates mobile app store packages and publisher IDs. |
-| **5** | **Verify Whitelist Exclusion** | Navigate to **Threat Investigations** | Official account (`@techvault`) & official app have **Risk Score = 0** and status `LEGITIMATE`. |
+| **5** | **Verify Whitelist Exclusion** | Review the scan summary | Official account and app are counted as excluded and do not appear as threat cases. |
 | **6** | **Inspect Rogue Threat** | Open Case `#2` (`@techvau1t`) | Shows **Score: 75 (HIGH)**, breakdown of 8 signals: `1` for `l` substitution, bio match, `bit.ly` phishing link. |
 | **7** | **Generate AI Threat Analysis** | Click **"Generate AI Threat Analysis"** | AI generates structured summary, observed facts, reasons for concern, and recommended analyst next steps. |
 | **8** | **Take Action & Document** | Update status to `UNDER_INVESTIGATION`, add note: *"Initiated platform takedown"* | Case status updates, audit history timeline records action with timestamp. |
@@ -208,3 +217,5 @@ docker compose up -d
 1. **Similarity $\neq$ Malicious Intent**: Similar names can occur naturally in unrelated sectors (e.g. `Tech Valley Hub` vs `TechVault`). BrandShield AI presents candidates for human analyst review rather than automated takedown execution.
 2. **Platform Display Name Volatility**: Impersonators frequently change display names while preserving usernames; our engine gives primary weighting to permanent account and package identifiers.
 3. **Prototype Authentication**: In this hackathon edition, security filters are set to permissive for demonstration simplicity. Production deployment should enforce OAuth2 / JWT authentication with role-based access control (SOC Tier 1/2/3).
+4. **Candidate Sources**: Add observed candidates through the Social Monitoring and App Monitoring pages or seed the demo set. Automated source connectors and per-platform availability monitoring require separate platform integrations and credentials.
+5. **Visual Brand Matching**: Brand and candidate logo/icon URLs are stored, but the current scanner does not compare image content. Similarity signals are based on text and listing metadata.

@@ -7,3 +7,15 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
 }
+
+.threat-pulse-card {
+  transform-style: preserve-3d;
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .threat-pulse-card {
+    transform: none !important;
+    transition: none;
+  }
+}

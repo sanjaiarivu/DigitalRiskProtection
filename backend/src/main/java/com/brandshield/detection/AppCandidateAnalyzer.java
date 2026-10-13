@@ -100,6 +100,18 @@ public class AppCandidateAnalyzer {
                 DetectionSignal.Confidence.HIGH
             ));
         }
+
+        if (textAnalyzer.hasAdjacentTransposition(brandName, appName)) {
+            signals.add(new DetectionSignal(
+                "APP_NAME_CHARACTER_TRANSPOSITION",
+                DetectionSignal.Category.CHARACTER_SUBSTITUTION.name(),
+                appName,
+                brandName,
+                String.format("Adjacent characters in app name '%s' are swapped relative to brand '%s'", appName, brandName),
+                18,
+                DetectionSignal.Confidence.MEDIUM
+            ));
+        }
     }
 
     /**

@@ -54,14 +54,14 @@ export default function SettingsPage() {
             <Shield className="w-4 h-4 text-emerald-600" />
             <h3 className="text-sm font-bold text-slate-900">AI Intelligence & Fallback</h3>
           </div>
-          <p className="text-xs text-slate-500 mb-4">
-            Dual-mode threat analysis: OpenAI integration with deterministic rule-grounded fallback.
+            <p className="text-xs text-slate-500 mb-4">
+            Gemini-first threat analysis with OpenAI and deterministic fallbacks.
           </p>
           <div className="space-y-3 text-xs text-slate-600">
             <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
-              <p className="font-semibold text-slate-800">Primary Provider: OpenAI (gpt-4o-mini)</p>
+              <p className="font-semibold text-slate-800">Primary Provider: Google Gemini</p>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                Enabled when OPENAI_API_KEY is configured in backend environment.
+                Enabled when GEMINI_API_KEY is configured; OpenAI is checked next if Gemini is unavailable.
               </p>
             </div>
             <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-100">

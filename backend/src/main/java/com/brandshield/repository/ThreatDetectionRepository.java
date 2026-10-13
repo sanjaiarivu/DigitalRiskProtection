@@ -13,16 +13,23 @@ public interface ThreatDetectionRepository extends JpaRepository<ThreatDetection
     List<ThreatDetection> findByStatus(ThreatDetection.DetectionStatus status);
     List<ThreatDetection> findByCandidateType(ThreatDetection.CandidateType type);
     List<ThreatDetection> findByRiskLevel(ThreatDetection.RiskLevel level);
-    long countByStatus(ThreatDetection.DetectionStatus status);
-    long countByRiskLevel(ThreatDetection.RiskLevel level);
-    long countByCandidateType(ThreatDetection.CandidateType type);
-    long countByRiskLevelIn(List<ThreatDetection.RiskLevel> levels);
+    @Query("SELECT COUNT(d) FROM ThreatDetection d WHERE d.isOfficialAsset = false AND d.status = :status")
+    long countByStatus(@Param("status") ThreatDetection.DetectionStatus status);
+    @Query("SELECT COUNT(d) FROM ThreatDetection d WHERE d.isOfficialAsset = false AND d.riskLevel = :level")
+    long countByRiskLevel(@Param("level") ThreatDetection.RiskLevel level);
+    @Query("SELECT COUNT(d) FROM ThreatDetection d WHERE d.isOfficialAsset = false AND d.candidateType = :type")
+    long countByCandidateType(@Param("type") ThreatDetection.CandidateType type);
+    @Query("SELECT COUNT(d) FROM ThreatDetection d WHERE d.isOfficialAsset = false AND d.riskLevel IN :levels")
+    long countByRiskLevelIn(@Param("levels") List<ThreatDetection.RiskLevel> levels);
+    @Query("SELECT COUNT(d) FROM ThreatDetection d WHERE d.isOfficialAsset = false")
+    long countThreatDetections();
 
     @Query("SELECT d FROM ThreatDetection d WHERE " +
            "(:brandId IS NULL OR d.brand.id = :brandId) AND " +
            "(:status IS NULL OR d.status = :status) AND " +
            "(:riskLevel IS NULL OR d.riskLevel = :riskLevel) AND " +
-           "(:candidateType IS NULL OR d.candidateType = :candidateType) " +
+           "(:candidateType IS NULL OR d.candidateType = :candidateType) AND " +
+           "d.isOfficialAsset = false " +
            "ORDER BY d.detectedAt DESC")
     List<ThreatDetection> findFiltered(
         @Param("brandId") Long brandId,
@@ -31,7 +38,8 @@ public interface ThreatDetectionRepository extends JpaRepository<ThreatDetection
         @Param("candidateType") ThreatDetection.CandidateType candidateType
     );
 
-    List<ThreatDetection> findTop10ByOrderByDetectedAtDesc();
+    @Query("SELECT d FROM ThreatDetection d WHERE d.isOfficialAsset = false ORDER BY d.detectedAt DESC")
+    List<ThreatDetection> findRecentThreats();
 
     @Query("SELECT d FROM ThreatDetection d WHERE d.socialCandidate.id = :candidateId AND d.brand.id = :brandId")
     List<ThreatDetection> findBySocialCandidateAndBrand(@Param("candidateId") Long candidateId, @Param("brandId") Long brandId);

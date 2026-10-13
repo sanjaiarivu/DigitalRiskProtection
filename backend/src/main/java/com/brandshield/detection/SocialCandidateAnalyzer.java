@@ -114,6 +114,19 @@ public class SocialCandidateAnalyzer {
             ));
         }
 
+        if (textAnalyzer.hasAdjacentTransposition(brandName, candidateName)) {
+            signals.add(new DetectionSignal(
+                nameType + "_CHARACTER_TRANSPOSITION",
+                DetectionSignal.Category.CHARACTER_SUBSTITUTION.name(),
+                candidateName,
+                brandName,
+                String.format("Adjacent characters in %s '%s' are swapped relative to brand name '%s'",
+                    nameType.toLowerCase().replace("_", " "), candidateName, brandName),
+                18,
+                DetectionSignal.Confidence.MEDIUM
+            ));
+        }
+
         // Affix pattern signals
         if (result.hasAddedAffixes()) {
             TextSimilarityAnalyzer.AffixResult affix = result.affixDetails();

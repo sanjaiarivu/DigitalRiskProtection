@@ -132,6 +132,23 @@ public class TextSimilarityAnalyzer {
         return substitutions;
     }
 
+    /** Detects one adjacent-character transposition, a common look-alike typo. */
+    public boolean hasAdjacentTransposition(String brandName, String candidateName) {
+        String a = normalizeText(brandName).replace(" ", "");
+        String b = normalizeText(candidateName).replace(" ", "");
+        if (a.length() != b.length()) return false;
+        int first = -1;
+        for (int i = 0; i < a.length(); i++) {
+            if (a.charAt(i) != b.charAt(i)) {
+                if (first < 0) first = i;
+                else if (i == first + 1 && a.charAt(first) == b.charAt(i)
+                        && a.charAt(i) == b.charAt(first)) return true;
+                else return false;
+            }
+        }
+        return false;
+    }
+
     /**
      * Detects if the candidate name has suspicious prefixes or suffixes
      * added to the brand name (e.g., "techvault_support", "official_techvault").

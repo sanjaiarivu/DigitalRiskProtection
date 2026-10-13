@@ -3,6 +3,7 @@ package com.brandshield.service;
 import com.brandshield.detection.*;
 import com.brandshield.dto.response.ScanResultResponse;
 import com.brandshield.dto.response.SocialCandidateResponse;
+import com.brandshield.dto.request.SocialCandidateCreateRequest;
 import com.brandshield.entity.*;
 import com.brandshield.mapper.EntityMapper;
 import com.brandshield.repository.*;
@@ -52,6 +53,24 @@ public class SocialMonitoringService {
     }
 
     @Transactional
+    public SocialCandidateResponse addCandidate(SocialCandidateCreateRequest request) {
+        SocialCandidate candidate = SocialCandidate.builder()
+                .platform(request.platform().trim())
+                .username(request.username())
+                .displayName(request.displayName())
+                .accountId(request.accountId())
+                .profileUrl(request.profileUrl())
+                .description(request.description())
+                .avatarUrl(request.avatarUrl())
+                .externalLinks(request.externalLinks())
+                .followerCount(request.followerCount())
+                .isSynthetic(false)
+                .source("MANUAL_IMPORT")
+                .build();
+        return EntityMapper.toSocialCandidateResponse(socialCandidateRepository.save(candidate));
+    }
+
+    @Transactional
     public ScanResultResponse scanAllBrands() {
         List<Brand> brands = brandRepository.findAll();
         List<SocialCandidate> candidates = socialCandidateRepository.findAll();
@@ -64,31 +83,29 @@ public class SocialMonitoringService {
             List<BrandAsset> officialAssets = brandAssetRepository.findByBrandId(brand.getId());
 
             for (SocialCandidate candidate : candidates) {
+                OfficialAssetVerifier.VerificationResult verification =
+                    assetVerifier.verifySocialCandidate(candidate, officialAssets);
+                if (verification.isOfficial()) {
+                    officialExcluded++;
+                    continue;
+                }
+
                 // Check if detection already exists for this candidate-brand pair
                 List<ThreatDetection> existing = detectionRepository
                     .findBySocialCandidateAndBrand(candidate.getId(), brand.getId());
                 if (!existing.isEmpty()) continue;
 
-                // Check if this is an official asset
-                OfficialAssetVerifier.VerificationResult verification =
-                    assetVerifier.verifySocialCandidate(candidate, officialAssets);
-
                 // Analyze the candidate
                 List<DetectionSignal> signals = socialAnalyzer.analyze(candidate, brand);
 
-                // Skip if no signals detected and not official
-                if (signals.isEmpty() && !verification.isOfficial()) continue;
+                if (signals.isEmpty()) continue;
 
                 // Calculate risk score
                 RiskScorer.RiskAssessment assessment =
                     riskScorer.calculateRiskScore(signals, verification.isOfficial());
 
-                if (verification.isOfficial()) {
-                    officialExcluded++;
-                }
-
                 // Only create detection if there are signals or it's official
-                if (!signals.isEmpty() || verification.isOfficial()) {
+                if (!signals.isEmpty()) {
                     ThreatDetection detection = createDetection(
                         brand, candidate, signals, assessment, verification);
                     detectionRepository.save(detection);

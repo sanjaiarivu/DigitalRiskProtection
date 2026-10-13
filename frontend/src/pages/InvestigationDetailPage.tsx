@@ -15,6 +15,7 @@ import {
   History,
   CheckCircle2,
   ExternalLink,
+  Download,
   Shield,
   HelpCircle,
   AlertTriangle
@@ -65,6 +66,43 @@ export default function InvestigationDetailPage() {
     },
   });
 
+  const exportEvidencePack = () => {
+    if (!detection) return;
+    const pack = {
+      format: 'BrandShield Evidence Pack',
+      schemaVersion: 1,
+      exportedAt: new Date().toISOString(),
+      case: {
+        id: detection.id,
+        brand: detection.brandName,
+        candidate: detection.candidateName,
+        platform: detection.candidatePlatform,
+        candidateType: detection.candidateType,
+        detectionType: detection.detectionType,
+        riskScore: detection.riskScore,
+        riskLevel: detection.riskLevel,
+        status: detection.status,
+        summary: detection.summary,
+        detectedAt: detection.detectedAt,
+        evidence: detection.evidence,
+        notes: detection.notes,
+        history: detection.history,
+        aiExplanation: detection.aiExplanation,
+        socialCandidate: detection.socialCandidate,
+        appCandidate: detection.appCandidate,
+      },
+    };
+    const file = new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(file);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `brandshield-case-${detection.id}-evidence.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
   if (isLoading) return <LoadingSpinner message="Loading full investigation case record..." />;
   if (error) return <ErrorState message={(error as Error).message} onRetry={() => refetch()} />;
   if (!detection) return null;
@@ -88,14 +126,19 @@ export default function InvestigationDetailPage() {
           </div>
         }
         actions={
-          <button
+          <div className="flex flex-wrap gap-2"><button
+            onClick={exportEvidencePack}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
+            <Download className="h-3.5 w-3.5" /> Export evidence
+          </button><button
             onClick={() => explanationMutation.mutate()}
             disabled={explanationMutation.isPending}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50"
           >
             <Sparkles className="w-3.5 h-3.5" />
             {explanationMutation.isPending ? 'Consulting AI...' : 'Generate AI Threat Analysis'}
-          </button>
+          </button></div>
         }
       />
 

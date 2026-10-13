@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { socialApi } from '../api/social';
 import PageHeader from '../components/layout/PageHeader';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import ErrorState from '../components/shared/ErrorState';
-import { Users, Radar, ExternalLink, CheckCircle } from 'lucide-react';
+import { Users, Radar, ExternalLink, CheckCircle, Plus } from 'lucide-react';
 
 export default function SocialMonitoringPage() {
   const queryClient = useQueryClient();
+  const [showAdd, setShowAdd] = useState(false);
+  const [candidate, setCandidate] = useState({ platform: '', username: '', displayName: '', accountId: '', profileUrl: '', description: '', avatarUrl: '', externalLinks: '', followerCount: '' });
 
   const { data: candidates, isLoading, error, refetch } = useQuery({
     queryKey: ['social-candidates'],
@@ -25,6 +27,12 @@ export default function SocialMonitoringPage() {
     }
   });
 
+  const addMutation = useMutation({
+    mutationFn: () => socialApi.addCandidate({ ...candidate, followerCount: candidate.followerCount ? Number(candidate.followerCount) : null }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['social-candidates'] }); setShowAdd(false); setCandidate({ platform: '', username: '', displayName: '', accountId: '', profileUrl: '', description: '', avatarUrl: '', externalLinks: '', followerCount: '' }); },
+    onError: (err: Error) => alert(`Could not add profile: ${err.message}`),
+  });
+
   if (isLoading) return <LoadingSpinner message="Scanning social media candidate feeds..." />;
   if (error) return <ErrorState message={(error as Error).message} onRetry={() => refetch()} />;
 
@@ -32,24 +40,30 @@ export default function SocialMonitoringPage() {
     <div className="space-y-6">
       <PageHeader
         title="Social Media Monitoring"
-        description="Monitor, analyze, and detect profile impersonations across major social platforms."
+        description="Review imported profiles for impersonation signals. Add observed accounts here; automatic platform discovery is not connected."
         actions={
-          <button
+          <div className="flex gap-2"><button onClick={() => setShowAdd(v => !v)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold"><Plus className="w-3.5 h-3.5" /> Add Profile</button><button
             onClick={() => scanMutation.mutate()}
             disabled={scanMutation.isPending}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs disabled:opacity-50"
           >
             <Radar className={`w-3.5 h-3.5 ${scanMutation.isPending ? 'animate-spin' : ''}`} />
             {scanMutation.isPending ? 'Running Engine...' : 'Run Social Scan'}
-          </button>
+          </button></div>
         }
       />
+
+      {showAdd && <form onSubmit={e => { e.preventDefault(); addMutation.mutate(); }} className="bg-white rounded-xl border border-slate-200 p-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+        {([['platform','Platform *'],['username','Username'],['displayName','Display name'],['accountId','Platform account ID'],['profileUrl','Profile URL'],['avatarUrl','Avatar image URL'],['externalLinks','External links'],['followerCount','Follower count']] as const).map(([key,label]) => <label key={key} className="text-xs font-semibold text-slate-600">{label}<input required={key === 'platform'} type={key === 'followerCount' ? 'number' : key.endsWith('Url') ? 'url' : 'text'} value={candidate[key]} onChange={e => setCandidate({ ...candidate, [key]: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>)}
+        <label className="text-xs font-semibold text-slate-600 md:col-span-3">Bio / description<textarea value={candidate.description} onChange={e => setCandidate({ ...candidate, description: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 font-normal" /></label>
+        <div className="md:col-span-3 flex justify-end gap-2"><button type="button" onClick={() => setShowAdd(false)} className="px-3 py-2 rounded-lg border text-xs">Cancel</button><button disabled={addMutation.isPending} className="px-3 py-2 rounded-lg bg-blue-600 text-white text-xs font-semibold">{addMutation.isPending ? 'Saving…' : 'Save profile'}</button></div>
+      </form>}
 
       <div className="bg-white rounded-xl border border-slate-200/90 overflow-hidden shadow-xs">
         <div className="p-4 border-b border-slate-200 flex items-center justify-between">
           <div>
             <h2 className="text-sm font-bold text-slate-900">Ingested Social Profiles</h2>
-            <p className="text-xs text-slate-500">Live feeds and candidate accounts analyzed by BrandShield</p>
+            <p className="text-xs text-slate-500">Imported candidate accounts analyzed by BrandShield</p>
           </div>
           <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
             {candidates?.length || 0} Profiles Loaded
