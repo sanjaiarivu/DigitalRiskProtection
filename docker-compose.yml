@@ -14,7 +14,7 @@ services:
       - "8080:8080"
     environment:
       # Use in-memory H2 (dev) or MySQL (prod)
-      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
       - DEMO_MODE=${DEMO_MODE:-true}
       # Google Gemini API key (passed from host .env or shell)
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
@@ -26,7 +26,7 @@ services:
       - DB_PORT=3306
       - DB_NAME=brandshield
       - DB_USER=brandshield_user
-      - DB_PASS=brandshield_secret
+      - DB_PASS=${MYSQL_PASSWORD:-change-me-local-app}
     depends_on:
       mysql-db:
         condition: service_healthy
@@ -43,15 +43,15 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root_secret_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-local-root}
       MYSQL_DATABASE: brandshield
       MYSQL_USER: brandshield_user
-      MYSQL_PASSWORD: brandshield_secret
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-local-app}
     volumes:
       - mysql_data:/var/lib/mysql
       - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_secret_password"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 5

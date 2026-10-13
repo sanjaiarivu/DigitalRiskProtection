@@ -128,29 +128,26 @@ BrandShield AI features a multi-tiered **`AiExplanationOrchestrator`**:
 ## 🚀 Getting Started (Windows PowerShell)
 
 ### Prerequisites
-- **Java 21+** (Java 21 or Java 25 LTS installed)
-- **Node.js 18+** with `npm`
+- **Java 17+** and **Maven 3.8+** (for the local backend)
+- **Node.js 18+** with `npm` (for the local frontend)
+- **Docker Desktop** (optional; for the one-command container demo)
 
 ### 1. Configure Your Gemini API Key (Optional but Recommended)
 
-The backend reads `GEMINI_API_KEY` from the project `.env` file automatically. Keep that file private; do not commit or paste the key into source files. The application tries Gemini first when generating an investigation explanation.
+AI explanations are optional: deterministic explanations work without an API key. To enable Gemini, copy `.env.example` to `.env`, then add your key. Keep `.env` private; it is ignored by Git. The application tries Gemini first when generating an investigation explanation.
 
-In your PowerShell window before starting:
 ```powershell
-$env:GEMINI_API_KEY="AIzaSyYourGeminiApiKeyHere"
+Copy-Item .env.example .env
+# Edit .env and set GEMINI_API_KEY if you want hosted AI explanations.
 ```
-*(Or specify it directly when launching the JAR via `-Dapp.ai.gemini.api-key="your_key"`)*
 
 ### 2. Start the Backend API
 
 ```powershell
 cd "s:\My Projects\DigitalRiskProtection\backend"
 
-# Run the 25 automated JUnit tests
-.\mvnw.cmd test
-
-# Start the Spring Boot backend with your Gemini key and in-memory H2 database
-java "-Dspring.profiles.active=dev" -jar target\brandshield-api-1.0.0.jar
+# Start the Spring Boot API with the in-memory H2 database
+mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
 ```
 *Backend runs at:* `http://localhost:8080`  
 *Swagger API Documentation:* `http://localhost:8080/swagger-ui.html`
@@ -160,10 +157,11 @@ java "-Dspring.profiles.active=dev" -jar target\brandshield-api-1.0.0.jar
 ```powershell
 cd "s:\My Projects\DigitalRiskProtection\frontend"
 
-# Launch development server
-cmd.exe /c "npm run dev"
+# Install dependencies and launch the development server
+npm ci
+npm run dev
 ```
-*Frontend runs at:* `http://localhost:5173`
+*Frontend runs at:* `http://localhost:5173`. The Vite development server forwards API requests to `http://localhost:8080`.
 
 ---
 
@@ -182,15 +180,16 @@ docker run -d -p 8080:8080 -e GEMINI_API_KEY="your_api_key_here" --name brandshi
 ```
 *Visit application:* `http://localhost:8080` (Frontend UI + REST APIs + Swagger)
 
-### 2. Run with Docker Compose (with Persistent MySQL)
+### 2. Run with Docker Compose (persistent local MySQL)
 
 ```powershell
-# Set your Gemini key
-$env:GEMINI_API_KEY="your_api_key_here"
+# Optional: copy .env.example to .env and edit the local database passwords
 
 # Start the full stack
 docker compose up -d
 ```
+
+The Compose stack uses MySQL and a persistent Docker volume by default. Change the example database passwords before exposing the stack outside your machine.
 
 ---
 
